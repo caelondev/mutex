@@ -2,6 +2,7 @@ package src
 
 import (
 	"fmt"
+	"strconv"
 
 	"github.com/caelondev/mutex/src/helpers"
 	"github.com/caelondev/mutex/src/lexer"
@@ -19,7 +20,7 @@ type Scanner struct {
 func NewScanner(sourceCode string) *Scanner {
 	return &Scanner{
 		SourceCode: []rune(sourceCode),
-		Tokens: []*lexer.Token{},
+		Tokens: make([]*lexer.Token, 0, len(sourceCode) + 1), // Over-allocate for faster tokenization process
 		Start: 0,
 		Current: 0,
 		Line: 1,
@@ -57,7 +58,7 @@ func (s *Scanner) ScanToken() {
 	case '{':
 		s.addToken(lexer.LEFT_BRACE)
 	case '}':
-		s.addToken(lexer.LEFT_BRACE)
+		s.addToken(lexer.RIGHT_BRACE)
 	case ':':
 		s.addToken(lexer.COLON)
 	case ';':
@@ -92,28 +93,76 @@ func (s *Scanner) ScanToken() {
 		s.Line++
 
 	default:
-		mutex.reportError(s.Line, fmt.Sprintf("Unexpected token found: %c", c))
+		if isNumber(c) {
+			s.handleNumber()
+		} else {
+			mutex.reportError(s.Line, fmt.Sprintf("Unexpected token found: %c", c))
+		}
 	}
+}
+
+func (s *Scanner) handleNumber() {
+    // Eat digits before the dot
+    for isNumber(s.peek()) {
+        s.advance()
+    }
+
+    // Handle decimal part
+    if s.peek() == '.' {
+        if !isNumber(s.peekNext()) { // no number after dot
+            mutex.reportError(s.Line,
+                fmt.Sprintf("Expected number after '.' but got '%c'", s.peekNext()))
+            return
+        }
+
+        s.advance() // Eat the dot
+
+        for isNumber(s.peek()) {
+            s.advance() // Eat digits after dot
+        }
+    }
+
+    // Parse the number string
+    value := string(s.SourceCode[s.Start:s.Current])
+    parsedNumber, err := strconv.ParseFloat(value, 64)
+    if err != nil {
+        mutex.reportError(s.Line,
+            fmt.Sprintf("Failed to parse number '%s': %s", value, err))
+        return
+    }
+
+    s.addTokenWithLiteral(lexer.NUMBER, parsedNumber)
 }
 
 func (s *Scanner) handleString() {
 	for s.peek() != '"' && !s.isEOF() {
       if (s.peek() == '\n') {
-				s.Line++
+				currentValue := string(
+					s.SourceCode[s.Start + 1 : s.Current],
+				)
+
+				mutex.reportError(s.Line, fmt.Sprintf("Missing closing string ('\"') after string value \"%s\"", currentValue))
+				return
 			}
       s.advance();
   }
 
 	if (s.isEOF()) {
-      mutex.reportError(s.Line, "Unterminated string.");
-      return;
-    }
+		currentValue := string(
+			s.SourceCode[s.Start + 1 : s.Current],
+		)
+		mutex.reportError(s.Line, fmt.Sprintf("Missing closing string ('\"') after string value \"%s\"", currentValue))
+		return;
+	}
 
-    s.advance(); // Eat closing ".
+	s.match('"'); // Eat closing ".
 
-    // Trim the surrounding quotes.
-		value := s.SourceCode[s.Start + 1 : s.Current - 1]
-    s.addTokenWithLiteral(lexer.STRING, value);
+	// Trim the surrounding quotes.
+	value := string(
+		s.SourceCode[s.Start + 1 : s.Current - 1],
+		)
+
+	s.addTokenWithLiteral(lexer.STRING, value);
 }
 
 func (s *Scanner) handleSlash() {
@@ -166,9 +215,12 @@ func (s *Scanner) peek() rune {
 }
 
 func (s *Scanner) peekNext() rune {
-	return s.SourceCode[s.Current+1]
+    if s.Current+1 >= len(s.SourceCode) {
+        return 0 
+    }
+    return s.SourceCode[s.Current+1]
 }
 
-func (s *Scanner) isNumber(c rune) bool {
-	return c >= '0' && c  <= '9'
+func isNumber(c rune) bool {
+	return c >= '0' && c <= '9'
 }
