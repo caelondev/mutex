@@ -1,6 +1,7 @@
 package ast
 
-import "github.com/caelondev/mutex/src/lexer"
+import "github.com/caelondev/mutex/src/frontend/lexer"
+
 
 type NumberExpression struct {
 	Value float64

@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strconv"
 
+	"github.com/caelondev/mutex/src/frontend/lexer"
 	"github.com/caelondev/mutex/src/helpers"
-	"github.com/caelondev/mutex/src/lexer"
 )
 
 type Scanner struct {

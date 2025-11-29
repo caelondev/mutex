@@ -1,8 +1,8 @@
 package parser
 
 import (
-	"github.com/caelondev/mutex/src/ast"
-	"github.com/caelondev/mutex/src/lexer"
+	"github.com/caelondev/mutex/src/frontend/ast"
+	"github.com/caelondev/mutex/src/frontend/lexer"
 )
 
 func parseStatement(p *parser) ast.Statement {

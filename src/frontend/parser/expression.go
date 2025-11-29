@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/caelondev/mutex/src/ast"
 	"github.com/caelondev/mutex/src/errors"
-	"github.com/caelondev/mutex/src/lexer"
+	"github.com/caelondev/mutex/src/frontend/ast"
+	"github.com/caelondev/mutex/src/frontend/lexer"
 )
 
 func parseExpression(p *parser, bp BindingPower) ast.Expression {

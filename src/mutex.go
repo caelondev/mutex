@@ -4,11 +4,10 @@ import (
 	"bufio"
 	"fmt"
 	"os"
-	"time"
 
 	"github.com/caelondev/mutex/src/errors"
-	"github.com/caelondev/mutex/src/parser"
-	"github.com/sanity-io/litter"
+	"github.com/caelondev/mutex/src/frontend/parser"
+	"github.com/caelondev/mutex/src/runtime/interpreter"
 )
 
 type Mutex struct {
@@ -19,7 +18,7 @@ var mutex = Mutex{}
 
 func Main() {
 	if len(os.Args) > 2 {
-		fmt.Println("Usage: m <filepath>")
+		fmt.Println("Usage: mutex <filepath>")
 		os.Exit(64)
 	}
 
@@ -67,20 +66,22 @@ func (m *Mutex) runRepl() {
 
 func (m *Mutex) run(sourceCode string) {
 	scanner := NewScanner(sourceCode)
-	start := time.Now()
+	// start := time.Now()
 	tokens := scanner.ScanTokens()
-	duration := time.Since(start)
+	// duration := time.Since(start)
 
-	if !m.hadError {
-		for _, token := range tokens {
-			fmt.Println(token)
-		}
-	}
+	// if !m.hadError {
+	// 	for _, token := range tokens {
+	// 		fmt.Println(token)
+	// 	}
+	// }
 
 	ast := parser.ProduceAST(tokens)
-	fmt.Printf("\nTokenization duration: %s\nTotal tokens: %d\nsource code length: %d\n", duration, len(tokens), len(sourceCode))
 
-	litter.Dump(ast)
+	result := interpreter.EvaluateStatement(&ast)
+	// fmt.Printf("\nTokenization duration: %s\nTotal tokens: %d\nsource code length: %d\n", duration, len(tokens), len(sourceCode))
+
+	fmt.Printf("\n%v\n\n", result)
 }
 
 func (m *Mutex) ReportError(line int, message string) {
