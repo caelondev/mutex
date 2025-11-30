@@ -10,7 +10,6 @@ import (
 	"github.com/sanity-io/litter"
 )
 
-// EvaluateStatement evaluates a statement node
 func EvaluateStatement(node ast.Statement, env Environment) RuntimeValue {
 	switch n := node.(type) {
 	case *ast.BlockStatement:
@@ -19,16 +18,18 @@ func EvaluateStatement(node ast.Statement, env Environment) RuntimeValue {
 		return EvaluateExpression(n.Expression, env)
 	case *ast.VariableDeclarationStatement:
 		return evaluateVariableDeclarationStatement(n, env)
+	case *ast.IfStatement:  // Add this case
+		return evaluateIfStatement(n, env)
 
 	default:
 		litter.Dump(fmt.Sprintf("Unsupported statement node type: %T", node))
+		litter.Dump(node)
 		os.Exit(65)
 	}
 
 	return nil
 }
 
-// EvaluateExpression evaluates an expression node
 func EvaluateExpression(node ast.Expression, env Environment) RuntimeValue {
 	switch n := node.(type) {
 	case *ast.NumberExpression:
@@ -43,17 +44,23 @@ func EvaluateExpression(node ast.Expression, env Environment) RuntimeValue {
 		return evaluateAssignmentExpression(n, env)
 
 	default:
-		panic(fmt.Sprintf("Unsupported expression node type: %T\n\nAST: %s", node, node))
+		litter.Dump(fmt.Sprintf("Unsupported expression node type: %T", node))
+		litter.Dump(node)
 	}
+
+	return nil
 }
 
 func evaluateBlockStatement(block *ast.BlockStatement, env Environment) RuntimeValue {
+	// Create a new child environment for block scope
+	blockEnv := NewEnvironment(env)
+	
 	var lastEvaluated RuntimeValue = &NilValue{}
-
+	
 	for _, statement := range block.Body {
-		lastEvaluated = EvaluateStatement(statement, env)
+		lastEvaluated = EvaluateStatement(statement, blockEnv) // Use blockEnv instead of env
 	}
-
+	
 	return lastEvaluated
 }
 
@@ -69,7 +76,6 @@ func evaluateBinaryExpression(expr *ast.BinaryExpression, env Environment) Runti
 	left := EvaluateExpression(expr.Left, env)
 	right := EvaluateExpression(expr.Right, env)
 
-	// Ensure both sides are numbers
 	leftNum, leftOk := left.(*NumberValue)
 	rhsNum, rightOk := right.(*NumberValue)
 
@@ -103,6 +109,20 @@ func evaluateNumericBinaryExpression(left *NumberValue, right *NumberValue, oper
 			panic("Modulo by zero")
 		}
 		result = math.Mod(lhs, rhs)
+	
+	case lexer.LESS:
+		return BOOLEAN(lhs < rhs)
+	case lexer.LESS_EQUAL:
+		return BOOLEAN(lhs <= rhs)
+	case lexer.GREATER:
+		return BOOLEAN(lhs > rhs)
+	case lexer.GREATER_EQUAL:
+		return BOOLEAN(lhs >= rhs)
+	case lexer.EQUAL_TO:
+		return BOOLEAN(lhs == rhs)
+	case lexer.NOT_EQUAL:
+		return BOOLEAN(lhs != rhs)
+
 	default:
 		panic(fmt.Sprintf("Unsupported binary operator: %s", operator.Lexeme))
 	}
@@ -131,4 +151,32 @@ func evaluateAssignmentExpression(expr *ast.AssignmentExpression, env Environmen
 	value := EvaluateExpression(expr.NewValue, env)
 
 	return env.AssignVariable(symbol.Value, value)
+}
+
+func evaluateIfStatement(stmt *ast.IfStatement, env Environment) RuntimeValue {
+	condition := EvaluateExpression(stmt.Condition, env)
+	
+	// Check if condition is truthy
+	if isTruthy(condition) {
+		return EvaluateStatement(stmt.Consequent, env)
+	} else if stmt.Alternate != nil {
+		return EvaluateStatement(stmt.Alternate, env)
+	}
+	
+	return NIL()
+}
+
+func isTruthy(value RuntimeValue) bool {
+	switch v := value.(type) {
+	case *NilValue:
+		return false
+	case *BooleanValue:
+		return v.Value
+	case *NumberValue:
+		return v.Value != 0
+	case *StringValue:
+		return v.Value != ""
+	default:
+		return true
+	}
 }

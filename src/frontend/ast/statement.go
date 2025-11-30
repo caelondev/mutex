@@ -19,3 +19,18 @@ type VariableDeclarationStatement struct {
 }
 
 func (node *VariableDeclarationStatement) Statement() {}
+
+type IfStatement struct {
+	Condition   Expression
+	Consequent  Statement
+	Alternate   Statement
+}
+
+func (node *IfStatement) Statement() {}
+
+type WhileStatement struct {
+	Condition   Expression
+	Body        Statement
+}
+
+func (node *WhileStatement) Statement() {}

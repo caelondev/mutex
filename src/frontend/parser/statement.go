@@ -1,9 +1,6 @@
 package parser
 
 import (
-	"fmt"
-
-	"github.com/caelondev/mutex/src/errors"
 	"github.com/caelondev/mutex/src/frontend/ast"
 	"github.com/caelondev/mutex/src/frontend/lexer"
 )
@@ -40,13 +37,10 @@ func parseVariableDeclaration(p *parser) ast.Statement {
 	p.advance() // eat var keyword ---
 
 	// check (imm/mut)
-	if p.currentTokenType() != lexer.IMMUTABLE &&
-		p.currentTokenType() != lexer.MUTABLE {
-		errors.ReportParser(fmt.Sprintf("Expected token (MUTABLE/IMMUTABLE) but gor %s instead", lexer.TokenTypeString(p.currentTokenType())), 65)
-	}
 
-	isMutable = p.currentTokenType() == lexer.MUTABLE
-	p.advance() // eat imm/mut keyword ---
+	mutabilityType := p.expect(lexer.MUTABLE, lexer.IMMUTABLE).TokenType
+
+	isMutable = mutabilityType == lexer.MUTABLE
 
 	identifier = p.expect(lexer.IDENTIFIER).Lexeme
 
@@ -64,4 +58,72 @@ func parseVariableDeclaration(p *parser) ast.Statement {
 		IsMutable:  isMutable,
 		Value:      value,
 	}
+}
+
+func parseIfStatement(p *parser) ast.Statement {
+	//  SYNTAX ---
+	//
+	//  if (condition) { ... } else { ... }
+	//  if (condition) { ... } else if (condition) { ... }
+	//
+
+	p.advance() // eat 'if' keyword
+
+	// Parse condition (can be with or without parentheses)
+	hasParens := p.currentTokenType() == lexer.LEFT_PARENTHESIS
+	if hasParens {
+		p.advance() // eat '('
+	}
+
+	condition := parseExpression(p, DEFAULT_BP)
+
+	if hasParens {
+		p.expect(lexer.RIGHT_PARENTHESIS) // eat ')'
+	}
+
+	// Parse consequent block
+	p.expect(lexer.LEFT_BRACE)
+	consequent := parseBlock(p)
+
+	// Parse optional else/else if
+	var alternate ast.Statement
+	if p.currentTokenType() == lexer.ELSE {
+		p.advance() // eat 'else'
+
+		// Check if it's 'else if' or just 'else'
+		if p.currentTokenType() == lexer.IF {
+			alternate = parseIfStatement(p) // recursive for else if
+		} else {
+			p.expect(lexer.LEFT_BRACE)
+			alternate = parseBlock(p)
+		}
+	}
+
+	return &ast.IfStatement{
+		Condition:  condition,
+		Consequent: consequent,
+		Alternate:  alternate,
+	}
+}
+
+func parseBlock(p *parser) ast.Statement {
+	// Assumes LEFT_BRACE already consumed
+	var body []ast.Statement
+
+	for !p.isEOF() && p.currentTokenType() != lexer.RIGHT_BRACE {
+		statement := parseStatement(p)
+		if statement != nil {
+			body = append(body, statement)
+		}
+	}
+
+	p.expect(lexer.RIGHT_BRACE) // eat '}'
+
+	return &ast.BlockStatement{
+		Body: body,
+	}
+}
+
+func parseWhileStatement (p *parser) ast.Statement {
+	return &ast.WhileStatement{}
 }

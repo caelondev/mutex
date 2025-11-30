@@ -84,4 +84,5 @@ func createTokenLookups() {
 
 	// Statements ---
 	statement(lexer.VAR, parseVariableDeclaration)
+	statement(lexer.IF, parseIfStatement)
 }

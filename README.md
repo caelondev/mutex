@@ -32,6 +32,14 @@ var mut foo = "bar"; // MUST BE `mut` TO MUTATE/REASSIGN!
 foo = "buzz";
 ```
 
+### IF-ELSE STATEMENTS
+
+```mutex
+if (true) { /* do this... */ }
+else if (true) { /* do this instead... */ }
+else { /* fallback... */ }
+```
+
 ## Credits
 
 - Built by [caelondev](https://github.com/caelondev)
