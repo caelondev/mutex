@@ -7,12 +7,9 @@ Mutex is a dynamically-typed scripting language implemented in Go. It features a
 ### Prerequisites
 - Go 1.25.3 or higher
 
-### Building from Source
+### Installing
 ```bash
-git clone https://github.com/caelondev/mutex.git
-cd mutex
-go mod download
-go install
+go install github.com/caelondev/mutex@latest
 ```
 
 ### Running
