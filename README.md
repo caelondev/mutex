@@ -35,9 +35,18 @@ foo = "buzz";
 ### IF-ELSE STATEMENTS
 
 ```mutex
-if (true) { /* do this... */ }
-else if (true) { /* do this instead... */ }
+if (condition) { /* do this... */ }
+else if (condition) { /* do this instead... */ }
 else { /* fallback... */ }
+```
+
+### LOOPS
+
+While-loops
+```mutex
+while (condition) {
+  /* do something... */
+}
 ```
 
 ## Credits

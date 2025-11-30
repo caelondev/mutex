@@ -20,6 +20,8 @@ func EvaluateStatement(node ast.Statement, env Environment) RuntimeValue {
 		return evaluateVariableDeclarationStatement(n, env)
 	case *ast.IfStatement:  // Add this case
 		return evaluateIfStatement(n, env)
+	case *ast.WhileStatement:
+		return evaluateWhileStatement(n, env)
 
 	default:
 		litter.Dump(fmt.Sprintf("Unsupported statement node type: %T", node))
@@ -179,4 +181,18 @@ func isTruthy(value RuntimeValue) bool {
 	default:
 		return true
 	}
+}
+
+func evaluateWhileStatement(stmt *ast.WhileStatement, env Environment) RuntimeValue {
+	for {
+		condition := EvaluateExpression(stmt.Condition, env)
+
+		if !isTruthy(condition) {
+			break
+		}
+
+		EvaluateStatement(stmt.Body, env)
+	}
+
+	return NIL()
 }

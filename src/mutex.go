@@ -68,22 +68,14 @@ func (m *Mutex) runRepl() {
 
 func (m *Mutex) run(sourceCode string) {
 	scanner := NewScanner(sourceCode)
-	// start := time.Now()
 	tokens := scanner.ScanTokens()
-	// duration := time.Since(start)
-
-	// if !m.hadError {
-	// 	for _, token := range tokens {
-	// 		fmt.Println(token)
-	// 	}
-	// }
-
 	ast := parser.ProduceAST(tokens)
 
-	result := runtime.EvaluateStatement(&ast, env)
-	// fmt.Printf("\nTokenization duration: %s\nTotal tokens: %d\nsource code length: %d\n", duration, len(tokens), len(sourceCode))
+	var result runtime.RuntimeValue
+	for _, stmt := range ast.Body {
+		result = runtime.EvaluateStatement(stmt, env)
+	}
 
-	// litter.Dump(ast)
 	fmt.Printf("%v\n\n", result)
 }
 

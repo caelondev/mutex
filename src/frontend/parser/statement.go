@@ -70,20 +70,16 @@ func parseIfStatement(p *parser) ast.Statement {
 	p.advance() // eat 'if' keyword
 
 	// Parse condition (can be with or without parentheses)
-	hasParens := p.currentTokenType() == lexer.LEFT_PARENTHESIS
-	if hasParens {
-		p.advance() // eat '('
-	}
+	p.ignore(lexer.LEFT_PARENTHESIS)
 
 	condition := parseExpression(p, DEFAULT_BP)
 
-	if hasParens {
-		p.expect(lexer.RIGHT_PARENTHESIS) // eat ')'
-	}
+	p.ignore(lexer.RIGHT_PARENTHESIS) // eat ')'
 
 	// Parse consequent block
 	p.expect(lexer.LEFT_BRACE)
 	consequent := parseBlock(p)
+	p.expect(lexer.RIGHT_BRACE)
 
 	// Parse optional else/else if
 	var alternate ast.Statement
@@ -117,7 +113,6 @@ func parseBlock(p *parser) ast.Statement {
 		}
 	}
 
-	p.expect(lexer.RIGHT_BRACE) // eat '}'
 
 	return &ast.BlockStatement{
 		Body: body,
@@ -125,5 +120,26 @@ func parseBlock(p *parser) ast.Statement {
 }
 
 func parseWhileStatement (p *parser) ast.Statement {
-	return &ast.WhileStatement{}
+	// SYNTAX ---
+	//
+	// while(condition) { ... } ---
+	//
+	p.advance() // eat while token ---
+	p.ignore(lexer.LEFT_PARENTHESIS)
+
+	condition := parseExpression(p, DEFAULT_BP)
+
+	p.ignore(lexer.RIGHT_PARENTHESIS)
+
+	p.expect(lexer.LEFT_BRACE)
+
+	body := parseBlock(p)
+
+	p.expect(lexer.RIGHT_BRACE)
+	
+	return &ast.WhileStatement{
+		Condition: condition,
+		Body: body,
+	}
+
 }
