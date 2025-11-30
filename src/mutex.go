@@ -71,6 +71,7 @@ func (m *Mutex) run(sourceCode string) {
 	tokens := scanner.ScanTokens()
 	ast := parser.ProduceAST(tokens)
 
+
 	var result runtime.RuntimeValue
 	for _, stmt := range ast.Body {
 		result = runtime.EvaluateStatement(stmt, env)

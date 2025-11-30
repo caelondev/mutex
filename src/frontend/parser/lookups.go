@@ -16,6 +16,7 @@ const (
 	ADDITIVE
 	MULTIPLICATIVE
 	UNARY
+	POSTFIX
 	CALL
 	MEMBER
 	PRIMARY
@@ -58,8 +59,21 @@ func createTokenLookups() {
 	nud(lexer.STRING, parsePrimaryExpression)
 	nud(lexer.LEFT_PARENTHESIS, parsePrimaryExpression)
 
-	// ASSIGNMENT ---
+	// PREFIX
+	nud(lexer.NOT, parseUnaryExpression)
+	nud(lexer.MINUS, parseUnaryExpression)
+
+	// ASSIGNMENT & COMPOUND ASSIGNMENT ---
 	led(lexer.ASSIGNMENT, ASSIGNMENT, parseVariableAssignmentExpression)
+	led(lexer.PLUS_EQUALS, ASSIGNMENT, parseVariableAssignmentExpression)
+	led(lexer.MINUS_EQUALS, ASSIGNMENT, parseVariableAssignmentExpression)
+	led(lexer.STAR_EQUALS, ASSIGNMENT, parseVariableAssignmentExpression)
+	led(lexer.SLASH_EQUALS, ASSIGNMENT, parseVariableAssignmentExpression)
+	led(lexer.MODULO_EQUALS, ASSIGNMENT, parseVariableAssignmentExpression)
+
+	// INCREMENT/DECREMENT (Postfix) ---
+	led(lexer.PLUS_PLUS, POSTFIX, parsePostfixExpression)
+	led(lexer.MINUS_MINUS, POSTFIX, parsePostfixExpression)
 
 	// RELATIONAL ---
 	led(lexer.LESS, RELATIONAL, parseBinaryExpression)
@@ -79,7 +93,6 @@ func createTokenLookups() {
 	// LOGICAL ---
 	led(lexer.AND, LOGICAL, parseBinaryExpression)
 	led(lexer.OR, LOGICAL, parseBinaryExpression)
-	led(lexer.NOT, LOGICAL, parseBinaryExpression)
 
 	// Statements ---
 	statement(lexer.VAR, parseVariableDeclaration)

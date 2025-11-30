@@ -68,13 +68,13 @@ func (s *Scanner) ScanToken() {
 	case '.':
 		s.addToken(lexer.DOT)
 	case '-':
-		s.addToken(lexer.MINUS)
+		s.handleMinus()
 	case '*':
-		s.addToken(lexer.STAR)
+		s.handleCompound(lexer.STAR_EQUALS, lexer.STAR)
 	case '+':
-		s.addToken(lexer.PLUS)
+		s.handlePlus()
 	case '%':
-		s.addToken(lexer.MODULO)
+		s.handleCompound(lexer.MODULO_EQUALS, lexer.MODULO)
 	case '<':
 		s.addToken(helpers.Ternary(s.match('='), lexer.LESS_EQUAL, lexer.LESS).(lexer.TokenType))
 	case '>':
@@ -82,7 +82,10 @@ func (s *Scanner) ScanToken() {
 	case '=':
 		s.addToken(helpers.Ternary(s.match('='), lexer.EQUAL_TO, lexer.ASSIGNMENT).(lexer.TokenType))
 	case '!':
-		s.addToken(helpers.Ternary(s.match('='), lexer.NOT_EQUAL, lexer.NOT).(lexer.TokenType))
+		if s.peek() == '=' {
+			s.advance()
+			s.addToken(lexer.NOT_EQUAL)
+		}
 	case '/':
 		s.handleSlash()
 	case '"', '\'':
@@ -104,6 +107,33 @@ func (s *Scanner) ScanToken() {
 		} else {
 			mutex.ReportError(s.Line, fmt.Sprintf("Unexpected token found: %c", c))
 		}
+	}
+}
+
+func (s *Scanner) handleMinus() {
+	if s.peek() == '-' { // check if has another -
+		s.advance() // eat '-'
+		s.addToken(lexer.MINUS_MINUS) 
+	} else {
+		s.handleCompound(lexer.MINUS_EQUALS, lexer.MINUS)
+	}
+}
+
+func (s *Scanner) handlePlus() {
+	if s.peek() == '+' { // check if has another +
+		s.advance() // eat '+'
+		s.addToken(lexer.PLUS_PLUS)
+	} else {
+		s.handleCompound(lexer.PLUS_EQUALS, lexer.PLUS)
+	}
+}
+
+func (s *Scanner) handleCompound(compound, regular lexer.TokenType) {
+	if s.peek() == '=' {
+		s.advance()
+		s.addToken(compound)
+	} else {
+		s.addToken(regular)
 	}
 }
 
@@ -233,7 +263,7 @@ func (s *Scanner) handleSlash() {
 		s.match('/')
 
 	} else {
-		s.addToken(lexer.SLASH)
+		s.handleCompound(lexer.SLASH_EQUALS, lexer.SLASH)
 	}
 }
 

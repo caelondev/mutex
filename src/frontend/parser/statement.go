@@ -78,7 +78,6 @@ func parseIfStatement(p *parser) ast.Statement {
 	// Parse consequent block
 	p.expect(lexer.LEFT_BRACE)
 	consequent := parseBlock(p)
-	p.expect(lexer.RIGHT_BRACE)
 
 	// Parse optional else/else if
 	var alternate ast.Statement
@@ -112,6 +111,7 @@ func parseBlock(p *parser) ast.Statement {
 		}
 	}
 
+	p.expect(lexer.RIGHT_BRACE)
 
 	return &ast.BlockStatement{
 		Body: body,
@@ -130,12 +130,9 @@ func parseWhileStatement (p *parser) ast.Statement {
 	condition := parseExpression(p, DEFAULT_BP)
 
 	p.ignore(lexer.RIGHT_PARENTHESIS)
-
 	p.expect(lexer.LEFT_BRACE)
 
 	body := parseBlock(p)
-
-	p.expect(lexer.RIGHT_BRACE)
 	
 	return &ast.WhileStatement{
 		Condition: condition,
@@ -166,7 +163,6 @@ func parseForStatement(p *parser) ast.Statement {
 	// Parse body
 	p.expect(lexer.LEFT_BRACE)
 	body := parseBlock(p)
-	p.expect(lexer.RIGHT_BRACE)
 
 	return &ast.ForStatement{
 		Initializer: initializer,

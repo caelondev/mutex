@@ -37,3 +37,17 @@ type AssignmentExpression struct {
 }
 
 func (node *AssignmentExpression) Expression() {}
+
+type UnaryExpression struct {
+	Operator lexer.Token
+	Operand  Expression
+}
+
+func (node *UnaryExpression) Expression() {}
+
+type PostfixExpression struct {
+	Operator lexer.Token
+	Operand  Expression
+}
+
+func (node *PostfixExpression) Expression() {}

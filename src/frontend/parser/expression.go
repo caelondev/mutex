@@ -19,7 +19,7 @@ func parseExpression(p *parser, bp BindingPower) ast.Expression {
 	}
 
 	if !exists {
-		errors.ReportParser(fmt.Sprintf("Unrecognized token found: %s (NUD)", lexer.TokenTypeString(tokenType)), 0)
+		errors.ReportParser(fmt.Sprintf("Unrecognized token found in the begining of an expression: %s", lexer.TokenTypeString(tokenType)), 0)
 	}
 
 	left := nudFunction(p)
@@ -29,7 +29,7 @@ func parseExpression(p *parser, bp BindingPower) ast.Expression {
 		ledFunction, exists := ledLU[tokenType]
 
 		if !exists {
-			errors.ReportParser(fmt.Sprintf("Unrecognized token found: %s (LED)", lexer.TokenTypeString(tokenType)), 0)
+			errors.ReportParser(fmt.Sprintf("Unrecognized token found in the middle of an expression: %s (LED)", lexer.TokenTypeString(tokenType)), 0)
 		}
 
 		left = ledFunction(p, left, bindingPowerLU[p.currentTokenType()])
@@ -56,7 +56,7 @@ func parsePrimaryExpression(p *parser) ast.Expression {
 	case lexer.LEFT_PARENTHESIS:
 		p.advance() // eat ( ---
 		value := parseExpression(p, DEFAULT_BP)
-		p.advance() // eat ) ---
+		p.expect(lexer.RIGHT_PARENTHESIS)
 		return value
 
 	default:
@@ -69,16 +69,66 @@ func parseBinaryExpression(p *parser, left ast.Expression, bp BindingPower) ast.
 	right := parseExpression(p, bp)
 
 	return &ast.BinaryExpression{
-		Left: left,
-		Right: right,
+		Left:     left,
+		Right:    right,
 		Operator: *operatorToken,
 	}
 }
 
 func parseVariableAssignmentExpression(p *parser, left ast.Expression, bp BindingPower) ast.Expression {
-	p.advance() // Eat past = token ---
+	operatorToken := p.advance() // Get the operator (=, +=, -=, etc.)
+	value := parseExpression(p, bp)
+
+	if operatorToken.TokenType != lexer.ASSIGNMENT {
+		var binaryOp lexer.TokenType
+		switch operatorToken.TokenType {
+		case lexer.PLUS_EQUALS:
+			binaryOp = lexer.PLUS
+		case lexer.MINUS_EQUALS:
+			binaryOp = lexer.MINUS
+		case lexer.STAR_EQUALS:
+			binaryOp = lexer.STAR
+		case lexer.SLASH_EQUALS:
+			binaryOp = lexer.SLASH
+		case lexer.MODULO_EQUALS:
+			binaryOp = lexer.MODULO
+		default:
+			errors.ReportParser(fmt.Sprintf("Unrecognized compound assignment operator: %s", lexer.TokenTypeString(operatorToken.TokenType)), 65)
+		}
+
+		value = &ast.BinaryExpression{
+			Left:  left, // Use the original left sid
+			Right: value,
+			Operator: lexer.Token{
+				TokenType: binaryOp,
+				Lexeme:    lexer.TokenTypeString(binaryOp),
+				Literal:   nil,
+				Line:      operatorToken.Line,
+			},
+		}
+	}
+
 	return &ast.AssignmentExpression{
 		Assignee: left,
-		NewValue: parseExpression(p, bp),
+		NewValue: value,
+	}
+}
+
+func parseUnaryExpression(p *parser) ast.Expression {
+	operatorToken := p.advance()
+	operand := parseExpression(p, UNARY)
+
+	return &ast.UnaryExpression{
+		Operator: *operatorToken,
+		Operand:  operand,
+	}
+}
+
+func parsePostfixExpression(p *parser, left ast.Expression, bp BindingPower) ast.Expression {
+	operatorToken := p.advance()
+
+	return &ast.PostfixExpression{
+		Operator: *operatorToken,
+		Operand:  left,
 	}
 }

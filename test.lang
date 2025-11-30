@@ -1,1 +1,181 @@
+var mut final_grand_total = 1;
 
+for (var mut i = 0; i < 100; i++) {
+  var imm max_outer = 4;
+  var imm max_middle = 3;
+  var imm max_inner = 3;
+  var imm fibonacci_limit = 10;
+
+  var mut grand_total = 0;
+  var mut multiplication_chain = 1;
+  var mut fibonacci_sum = 0;
+
+  for (var mut i = 1; i < max_outer; i++) {
+      var mut section_sum = 0;
+      
+      for (var mut j = 1; j < max_middle; j++) {
+          var mut subsection_product = 1;
+          
+          for (var mut k = 1; k < max_inner; k++) {
+              var mut calculation = i + j * k;
+              calculation = calculation - k;
+              calculation = calculation / 2;
+              calculation = calculation % 5;
+              
+              subsection_product *= calculation + 1;
+              section_sum += calculation;
+              
+              if (k > 1) {
+                  if (calculation == 0) {
+                      subsection_product += 10;
+                  }
+                  
+                  if (calculation != 0) {
+                      subsection_product -= 1;
+                  }
+              }
+              
+              var mut temp = k;
+              temp++;
+              subsection_product += temp;
+              temp--;
+              subsection_product -= temp;
+          }
+          
+          section_sum += subsection_product;
+          
+          var mut counter = j;
+          while (counter > 0) {
+              if (counter % 2 == 0) {
+                  section_sum++;
+              }
+              counter--;
+          }
+      }
+      
+      grand_total += section_sum;
+      multiplication_chain *= i;
+  }
+
+  var mut fib_a = 0;
+  var mut fib_b = 1;
+  var mut fib_count = 0;
+
+  while (fib_count < fibonacci_limit) {
+      var mut fib_next = fib_a + fib_b;
+      
+      if (fib_next < 100) {
+          fibonacci_sum += fib_next;
+          
+          if (fib_next % 2 == 0) {
+              fibonacci_sum += 5;
+          }
+      }
+      
+      fib_a = fib_b;
+      fib_b = fib_next;
+      fib_count++;
+  }
+
+  var mut factorial = 1;
+  var mut factorial_sum = 0;
+
+  for (var mut n = 1; n <= 6; n++) {
+      factorial *= n;
+      
+      if (n > 2) {
+          var mut scoped_var = n * 10;
+          
+          for (var mut m = 1; m <= n; m++) {
+              var mut deeply_scoped = m + scoped_var;
+              factorial_sum += deeply_scoped;
+              
+              if (m % 2 != 0) {
+                  deeply_scoped += n;
+                  factorial_sum += deeply_scoped;
+              }
+          }
+          
+          factorial_sum += scoped_var;
+      }
+  }
+
+  var mut conditional_result = 0;
+
+  for (var mut x = 0; x < 5; x++) {
+      if (x == 0) {
+          conditional_result += 1;
+      }
+      
+      if (x == 1) {
+          conditional_result += 10;
+      } else {
+          if (x == 2) {
+              conditional_result += 100;
+          } else {
+              if (x == 3) {
+                  conditional_result += 1000;
+              } else {
+                  conditional_result += 10000;
+              }
+          }
+      }
+  }
+
+  var mut postfix_test = 0;
+  var mut loop_counter = 5;
+
+  while (loop_counter > 0) {
+      postfix_test++;
+      loop_counter--;
+      
+      var mut inner_counter = 3;
+      while (inner_counter > 0) {
+          postfix_test++;
+          inner_counter--;
+      }
+  }
+
+  var mut modulo_sum = 0;
+  var mut division_sum = 0;
+
+  for (var mut a = 1; a <= 20; a++) {
+      if (a % 3 == 0) {
+          modulo_sum += a;
+      }
+      
+      if (a % 5 == 0) {
+          modulo_sum -= a / 2;
+      }
+      
+      var mut b = a;
+      while (b > 0) {
+          division_sum += b / 2;
+          b = b - 5;
+      }
+  }
+
+  var mut edge_test = 100;
+  edge_test /= 10;
+  edge_test *= 5;
+  edge_test %= 7;
+  edge_test += 1000;
+  edge_test -= 500;
+
+  var mut negative_test = 10;
+  negative_test = 0 - negative_test;
+  negative_test = negative_test * 2;
+
+  var mut bool_test = 0;
+  if (!false) {
+      bool_test = 1;
+  }
+
+  if (!(5 > 10)) {
+      bool_test += 10;
+  }
+
+    final_grand_total *= grand_total + fibonacci_sum + factorial_sum + conditional_result + postfix_test + modulo_sum + division_sum + edge_test + bool_test;
+}
+
+final_grand_total

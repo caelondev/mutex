@@ -14,14 +14,8 @@ go install github.com/caelondev/mutex@latest
 
 ### Running
 ```bash
-./mutex              # Start interactive REPL
-./mutex <filepath>   # Execute a Mutex source file
-```
-
-Alternatively, run directly with Go:
-```bash
-go run .              # Start interactive REPL
-go run . <filepath>   # Execute a Mutex source file
+mutex              # Start interactive REPL
+mutex <filepath>   # Execute a Mutex source file
 ```
 
 ## Language Reference
@@ -34,6 +28,9 @@ Mutex supports the following primitive types:
 // Number - IEEE 754 double-precision floating-point
 42
 3.14159
+// even this
+-69
+-67.41
 
 // String - UTF-8 encoded text
 "Hello, World!"
@@ -54,6 +51,9 @@ Variables in Mutex can be declared as either mutable or immutable:
 ```mutex
 var mut counter = 0;
 counter = counter + 1;
+
+// and even this
+counter += 1
 ```
 
 **Immutable variables** cannot be reassigned:
@@ -71,6 +71,21 @@ var imm max_retries = 3;
 10 * 5    // Multiplication: 50
 10 / 5    // Division: 2
 10 % 3    // Modulo: 1
+```
+
+#### Compound Assignment Operators
+```mutex
+x += 5    // Shorthand for `x = x + 5`
+x -= 5    // Shorthand for `x = x - 5`
+x *= 5    // Shorthand for `x = x * 5`
+x /= 5    // Shorthand for `x = x / 5`
+x %= 3    // Shorthand for `x = x % 5`
+```
+
+### Incremnt/Decrement Operators
+```mutex
+x++ // Shorthand for `x = x + 1`
+x-- // Shorthand for `x = x - 1`
 ```
 
 #### Comparison Operators
@@ -130,7 +145,7 @@ while (i < 5) {
 Execute code with explicit initialization, condition, and increment:
 
 ```mutex
-for (var mut i = 0; i < 10; i = i + 1) {
+for (var mut i = 0; i < 10; i++) {
     // Loop body executes 10 times
 }
 // i is not accessible here (scoped to loop)
@@ -162,9 +177,10 @@ if (x > 5) {
 ### Sum of Natural Numbers
 ```mutex
 var mut sum = 0;
-for (var mut i = 1; i <= 100; i = i + 1) {
+for (var mut i = 1; i <= 100; i++) {
     sum = sum + i;
 }
+
 // sum is now 5050
 ```
 
@@ -175,15 +191,16 @@ var mut factorial = 1;
 var mut i = 1;
 
 while (i <= n) {
-    factorial = factorial * i;
-    i = i + 1;
+    factorial *= i;
+    i += 1;
 }
+
 // factorial is now 120
 ```
 
 ### FizzBuzz
 ```mutex
-for (var mut i = 1; i <= 15; i = i + 1) {
+for (var mut i = 1; i <= 15; i += 1) {
     var mut output = "";
     
     if (i % 3 == 0) {

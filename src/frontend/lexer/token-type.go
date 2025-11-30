@@ -29,6 +29,15 @@ const (
 	LESS_EQUAL
 	ASSIGNMENT
 
+	MINUS_EQUALS
+	PLUS_EQUALS
+	SLASH_EQUALS
+	STAR_EQUALS
+	MODULO_EQUALS
+
+	MINUS_MINUS
+	PLUS_PLUS
+
 	// Literals ---
 	IDENTIFIER
 	STRING
@@ -60,6 +69,7 @@ var RESERVED_KEYWORDS map[string]TokenType = map[string]TokenType{
 	"fn": FUNCTION,
 	"if": IF,
 	"or": OR,
+	"not": NOT,
 	"return": RETURN,
 	"super": SUPER,
 	"this": THIS,
@@ -150,6 +160,20 @@ func TokenTypeString(t TokenType) string {
 		return "WHILE"
 	case FOR:
 		return "FOR"
+	case PLUS_EQUALS:
+		return "PLUS_EQUALS"
+	case MINUS_EQUALS:
+		return "MINUS_EQUALS"
+	case SLASH_EQUALS:
+		return "SLASH_EQUALS"
+	case STAR_EQUALS:
+		return "STAR_EQUALS"
+	case MODULO_EQUALS:
+		return "MODULO_EQUALS"
+	case PLUS_PLUS:
+		return "PLUS_PLUS"
+	case MINUS_MINUS:
+		return "MINUS_MINUS"
 
 	case EOF:
 		return "EOF"
