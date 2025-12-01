@@ -17,7 +17,7 @@ func parseStatement(p *parser) ast.Statement {
 
 	expression := parseExpression(p, DEFAULT_BP)
 
-	p.ignore(lexer.SEMICOLON)
+	p.expect(lexer.SEMICOLON)
 
 	return &ast.ExpressionStatement{
 		Expression: expression,
@@ -169,5 +169,97 @@ func parseForStatement(p *parser) ast.Statement {
 		Condition:   condition,
 		Increment:   increment,
 		Body:        body,
+	}
+}
+
+func parseFunctionDeclaration(p *parser) ast.Statement {
+	// SYNTAX ---
+	//
+	// fn name(param1, param2, ...) { ... }
+	//
+	
+	var parameters []string
+
+	p.advance() // Eat 'fn' ---
+	name := p.expect(lexer.IDENTIFIER).Lexeme
+
+	// Parse Parameters ---
+	p.expect(lexer.LEFT_PARENTHESIS)
+
+	if p.currentTokenType() != lexer.RIGHT_PARENTHESIS {
+		parameters = append(parameters, p.expect(lexer.IDENTIFIER).Lexeme)
+		for p.currentTokenType() == lexer.COMMA {
+			p.advance() // eat ',' ---
+			parameters = append(parameters, p.expect(lexer.IDENTIFIER).Lexeme)
+		}
+	}
+
+	p.expect(lexer.RIGHT_PARENTHESIS)
+
+	// Parse Function Body ---
+	p.expect(lexer.LEFT_BRACE)
+	body := parseBlock(p)
+
+	return &ast.FunctionDeclaration{
+		Name: name,
+		Parameters: parameters,
+		Body: body,
+	}
+}
+
+func parseReturnStatement(p *parser) ast.Statement {
+	// SYNTAX ---
+	//
+	// return;
+	// return value;
+	// return x+y;
+
+	p.advance() // Eat 'return' keyword ---
+
+	var value ast.Expression
+
+	// Check return value, not just 'return' itself
+	if p.currentTokenType() != lexer.SEMICOLON && !p.isEOF() {
+		value = parseExpression(p, DEFAULT_BP)
+	}
+
+	p.expect(lexer.SEMICOLON)
+
+	return &ast.ReturnStatement{
+		Value: value,
+	}
+}
+
+func parseCallExpression(p *parser, left ast.Expression, bp BindingPower) ast.Expression {
+	// SYNTAX ---
+	//
+	// functionName(arg1, arg2, arg3)
+	// functionName(arg1, arg2,)  // trailing comma allowed
+	
+	p.advance() // eat '(' ---
+	
+	var args []ast.Expression
+	
+	// Parse arguments
+	if p.currentTokenType() != lexer.RIGHT_PARENTHESIS {
+		args = append(args, parseExpression(p, DEFAULT_BP))
+		
+		for p.currentTokenType() == lexer.COMMA {
+			p.advance() // eat ','
+			
+			// Check for trailing comma before RIGHT_PARENTHESIS
+			if p.currentTokenType() == lexer.RIGHT_PARENTHESIS {
+				break
+			}
+			
+			args = append(args, parseExpression(p, DEFAULT_BP))
+		}
+	}
+	
+	p.expect(lexer.RIGHT_PARENTHESIS)
+	
+	return &ast.CallExpression{
+		Callee:    left,
+		Arguments: args,
 	}
 }

@@ -2,7 +2,6 @@ package ast
 
 import "github.com/caelondev/mutex/src/frontend/lexer"
 
-
 type NumberExpression struct {
 	Value float64
 }
@@ -21,11 +20,9 @@ type SymbolExpression struct {
 
 func (node *SymbolExpression) Expression() {}
 
-
-
 type BinaryExpression struct {
-	Left Expression
-	Right Expression
+	Left     Expression
+	Right    Expression
 	Operator lexer.Token
 }
 
@@ -60,15 +57,22 @@ func (node *ArrayExpression) Expression() {}
 
 type ArrayIndexExpression struct {
 	Object Expression
-	Index Expression
+	Index  Expression
 }
 
 func (node *ArrayIndexExpression) Expression() {}
 
 type ArrayIndexAssignmentExpression struct {
-	Object Expression
-	Index Expression
+	Object   Expression
+	Index    Expression
 	NewValue Expression
 }
 
 func (node *ArrayIndexAssignmentExpression) Expression() {}
+
+type CallExpression struct {
+	Callee    Expression
+	Arguments []Expression
+}
+
+func (c *CallExpression) Expression() {}

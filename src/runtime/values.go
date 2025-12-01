@@ -3,6 +3,8 @@ package runtime
 import (
 	"fmt"
 	"strings"
+
+	"github.com/caelondev/mutex/src/frontend/ast"
 )
 
 type ValueTypes string
@@ -13,10 +15,13 @@ const (
 	NUMBER_VALUE ValueTypes = "number"
 	STRING_VALUE ValueTypes = "string"
 	ARRAY_VALUE ValueTypes = "array"
+	FUNCTION_VALUE        ValueTypes = "function"
+	NATIVE_FUNCTION_VALUE ValueTypes = "native_function"
 )
 
 type RuntimeValue interface {
 	Type() ValueTypes
+	String() string
 }
 
 type NilValue struct{}
@@ -38,7 +43,7 @@ func (n *StringValue) Type() ValueTypes {
 }
 
 func (n *StringValue) String() string {
-	return fmt.Sprintf("%v", n.Value)
+	return fmt.Sprintf("\"%v\"", n.Value)
 }
 
 type NumberValue struct {
@@ -58,20 +63,53 @@ type BooleanValue struct {
 }
 
 func (n *BooleanValue) Type() ValueTypes {
-	return NUMBER_VALUE
+	return BOOLEAN_VALUE
 }
 
 func (n *BooleanValue) String() string {
 	return fmt.Sprintf("%v", n.Value)
 }
 
-
-func NIL() *NilValue {
-	return &NilValue{}
+type FunctionValue struct {
+	Name       string
+	Parameters []string
+	Body       ast.Statement
+	Closure    Environment
 }
 
-func BOOLEAN(value bool) *BooleanValue {
-	return &BooleanValue{ Value: value }
+func (f *FunctionValue) Type() ValueTypes {
+	return FUNCTION_VALUE
+}
+
+func (f *FunctionValue) String() string {
+	return fmt.Sprintf("[ ...function '%s'... ]", f.Name)
+}
+
+
+type NativeFunctionValue struct {
+	Name string
+	Call func(args []RuntimeValue, env Environment) RuntimeValue
+}
+
+func (n *NativeFunctionValue) Type() ValueTypes {
+	return NATIVE_FUNCTION_VALUE
+}
+
+func (n *NativeFunctionValue) String() string {
+	return fmt.Sprintf("[ ...native function '%s'... ]", n.Name)
+}
+
+
+type ReturnValue struct {
+	Value RuntimeValue
+}
+
+func (r *ReturnValue) Type() ValueTypes {
+	return "return"
+}
+
+func (r *ReturnValue) String() string {
+	return r.Value.String()
 }
 
 type ArrayValue struct {
@@ -94,6 +132,30 @@ func (a *ArrayValue) String() string {
 	return "[" + strings.Join(elements, ", ") + "]"
 }
 
+func NIL() *NilValue {
+	return &NilValue{}
+}
+
+func BOOLEAN(value bool) *BooleanValue {
+	return &BooleanValue{ Value: value }
+}
+
 func ARRAY(elements []RuntimeValue) *ArrayValue {
 	return &ArrayValue{Elements: elements}
+}
+
+func NATIVE_FUNCTION(name string, call func([]RuntimeValue, Environment) RuntimeValue) *NativeFunctionValue {
+	return &NativeFunctionValue{
+		Name: name,
+		Call: call,
+	}
+}
+
+func FUNCTION(name string, params []string, body ast.Statement, closure Environment) *FunctionValue {
+	return &FunctionValue{
+		Name:       name,
+		Parameters: params,
+		Body:       body,
+		Closure:    closure,
+	}
 }

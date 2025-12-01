@@ -250,3 +250,48 @@ func evaluateIndexAssignmentExpression(expr *ast.ArrayIndexAssignmentExpression,
 	
 	return NIL()
 }
+
+func evaluateCallExpression(expr *ast.CallExpression, env Environment) RuntimeValue {
+	callee := EvaluateExpression(expr.Callee, env) // Parse identifier ---
+	
+	// Evaluate all arguments ---
+	var args []RuntimeValue
+	for _, argExpr := range expr.Arguments {
+		args = append(args, EvaluateExpression(argExpr, env))
+	}
+	
+	// Check if is a native function ---
+	if nativeFunc, ok := callee.(*NativeFunctionValue); ok {
+		return nativeFunc.Call(args, env)
+	}
+	
+	if function, ok := callee.(*FunctionValue); ok {
+		// Check argument count ---
+		if len(args) != len(function.Parameters) {
+			errors.ReportInterpreter(
+				fmt.Sprintf("Function '%s' expects %d arguments but got %d", 
+					function.Name, len(function.Parameters), len(args)), 65)
+		}
+		
+		// Create new environment for function execution (using closure) ---
+		funcEnv := NewEnvironment(function.Closure)
+		
+		// Bind arguments to parameters ---
+		for i, param := range function.Parameters {
+			funcEnv.DeclareVariable(param, args[i], false) // params are mutable ---
+		}
+		
+		// Execute function body ---
+		result := EvaluateStatement(function.Body, funcEnv)
+		
+		// Unwrap return value if present ---
+		if returnVal, ok := result.(*ReturnValue); ok {
+			return returnVal.Value
+		}
+		
+		return NIL()
+	}
+	
+	errors.ReportInterpreter(fmt.Sprintf("Cannot call non-function value of type '%s'", callee.Type()), 65)
+	return NIL()
+}

@@ -43,3 +43,17 @@ type ForStatement struct {
 }
 
 func (node *ForStatement) Statement() {}
+
+type FunctionDeclaration struct {
+	Name       string
+	Parameters []string
+	Body       Statement
+}
+
+func (f *FunctionDeclaration) Statement() {}
+
+type ReturnStatement struct {
+	Value Expression // Can be nil for bare "return;"
+}
+
+func (r *ReturnStatement) Statement() {}

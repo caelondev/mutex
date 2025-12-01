@@ -98,9 +98,14 @@ func createTokenLookups() {
 	led(lexer.AND, LOGICAL, parseBinaryExpression)
 	led(lexer.OR, LOGICAL, parseBinaryExpression)
 
+	// CALLS ---
+	led(lexer.LEFT_PARENTHESIS, CALL, parseCallExpression)
+
 	// Statements ---
 	statement(lexer.VAR, parseVariableDeclaration)
 	statement(lexer.IF, parseIfStatement)
 	statement(lexer.WHILE, parseWhileStatement)
 	statement(lexer.FOR, parseForStatement)
+	statement(lexer.FUNCTION, parseFunctionDeclaration)
+	statement(lexer.RETURN, parseReturnStatement)
 }

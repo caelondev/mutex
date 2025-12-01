@@ -41,6 +41,20 @@ func declareGlobalVariables(env Environment) {
 	env.DeclareVariable("nil", NIL(), true)
 	env.DeclareVariable("true", BOOLEAN(true), true)
 	env.DeclareVariable("false", BOOLEAN(false), true)
+
+	// Native functions ---
+	env.DeclareVariable("echo", NATIVE_FUNCTION("echo", NATIVE_ECHO_FUNCTION), true)
+	env.DeclareVariable("typeof", NATIVE_FUNCTION("typeof", NATIVE_TYPEOF_FUNCTION), true)
+	env.DeclareVariable("push", NATIVE_FUNCTION("push", NATIVE_PUSH_FUNCTION), true)
+	env.DeclareVariable("pop", NATIVE_FUNCTION("pop", NATIVE_POP_FUNCTION), true)
+	env.DeclareVariable("shift", NATIVE_FUNCTION("shift", NATIVE_SHIFT_FUNCTION), true)
+	env.DeclareVariable("unshift", NATIVE_FUNCTION("unshift", NATIVE_UNSHIFT_FUNCTION), true)
+
+	env.DeclareVariable("string", NATIVE_FUNCTION("string", NATIVE_STRING_FUNCTION), true)
+	env.DeclareVariable("int", NATIVE_FUNCTION("int", NATIVE_INT_FUNCTION), true)
+	env.DeclareVariable("float", NATIVE_FUNCTION("float", NATIVE_FLOAT_FUNCTION), true)
+	env.DeclareVariable("bool", NATIVE_FUNCTION("bool", NATIVE_BOOL_FUNCTION), true)
+
 }
 
 func (e *EnvironmentStruct) DeclareVariable(variableName string, value RuntimeValue, isConstant bool) RuntimeValue {

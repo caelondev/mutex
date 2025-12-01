@@ -1,6 +1,12 @@
 package runtime
 
-import "github.com/caelondev/mutex/src/frontend/ast"
+import (
+	"fmt"
+	"os"
+
+	"github.com/caelondev/mutex/src/frontend/ast"
+	"github.com/sanity-io/litter"
+)
 
 func EvaluateExpression(node ast.Expression, env Environment) RuntimeValue {
 	switch n := node.(type) {
@@ -24,10 +30,16 @@ func EvaluateExpression(node ast.Expression, env Environment) RuntimeValue {
 		return evaluateIndexExpression(n, env)
 	case *ast.ArrayIndexAssignmentExpression:
 		return evaluateIndexAssignmentExpression(n, env)
+	case *ast.CallExpression:
+		return evaluateCallExpression(n, env)
 
 	default:
-		panic("Unsupported expression node type")
+		litter.Dump(fmt.Sprintf("Unsupported expression node type %v\n", node))
+		litter.Dump(node)
+		os.Exit(65)
 	}
+
+	return nil
 }
 
 func EvaluateStatement(node ast.Statement, env Environment) RuntimeValue {
@@ -44,7 +56,16 @@ func EvaluateStatement(node ast.Statement, env Environment) RuntimeValue {
 		return evaluateWhileStatement(n, env)
 	case *ast.ForStatement:
 		return evaluateForStatement(n, env)
+	case *ast.FunctionDeclaration:
+		return evaluateFunctionDeclaration(n, env)
+	case *ast.ReturnStatement:
+		return evaluateReturnStatement(n, env)
+
 	default:
-		panic("Unsupported statement node type")
+		litter.Dump(fmt.Sprintf("Unsupported Statement node type %V\n", node))
+		litter.Dump(node)
+		os.Exit(65)
 	}
+
+	return nil
 }

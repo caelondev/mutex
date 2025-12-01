@@ -10,6 +10,11 @@ func evaluateBlockStatement(block *ast.BlockStatement, env Environment) RuntimeV
 
 	for _, statement := range block.Body {
 		lastEvaluated = EvaluateStatement(statement, blockEnv)
+		
+		// If we hit a return statement, bubble it up immediately
+		if _, isReturn := lastEvaluated.(*ReturnValue); isReturn {
+			return lastEvaluated
+		}
 	}
 
 	return lastEvaluated
@@ -70,4 +75,24 @@ func evaluateForStatement(stmt *ast.ForStatement, env Environment) RuntimeValue 
 	}
 
 	return NIL()
+}
+
+func evaluateFunctionDeclaration(stmt *ast.FunctionDeclaration, env Environment) RuntimeValue {
+	functionValue := FUNCTION(stmt.Name, stmt.Parameters, stmt.Body, env)
+
+	env.DeclareVariable(stmt.Name, functionValue, true)
+
+	return NIL()
+}
+
+func evaluateReturnStatement(stmt *ast.ReturnStatement, env Environment) RuntimeValue {
+	var value RuntimeValue
+
+	if stmt.Value != nil {
+		value = EvaluateExpression(stmt.Value, env)
+	} else {
+		value = NIL()
+	}
+
+	return &ReturnValue{Value: value}
 }
